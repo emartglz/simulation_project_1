@@ -1,84 +1,60 @@
-from numpy.core.numeric import Inf
 from port import generate_arrive
 from functools import reduce
 from trailer import (
     get_move_to_port_time,
     get_move_to_pier_time,
-    TrailerSide,
     get_swap_time,
+    TrailerSide,
 )
 from ship import get_load_time
-
-
-INF = 99999
-
-
-def min_of_list(list):
-    return reduce(lambda a, b: min(a, b), list)
-
-
-def is_full_none(list):
-    for i in range(len(list)):
-        if list[i] is not None:
-            return False
-    return True
-
-
-def get_first_none(list):
-    for i in range(len(list)):
-        if list[i] is None:
-            return i
-    return None
-
-
-def get_first_none_tuple(list, side):
-    for i in range(len(list)):
-        if list[i][0] is None and list[i][2] == side:
-            return i
-    return None
-
-
-def get_position_of_min(list):
-    min_pos = 0
-    min_n = INF
-    for i in range(len(list)):
-        if list[i] < min_n:
-            min_n = list[i]
-            min_pos = i
-    return min_pos
+from macros import INF
+from utils import (
+    get_first_none,
+    get_first_none_tuple,
+    get_position_of_min,
+    is_full_none,
+    min_of_list,
+)
 
 
 def simulate(total_time, pier_amount, trailer_amout):
-    time = 0
-    Na = 0
-    N_move_pier = 0
-    N_depart_pier = 0
-    N_move_port = 0
+    time = 0  # time
+    Na = 0  # number of ships arrived
+    N_move_pier = 0  # number of ships moved to pier
+    N_depart_pier = 0  # number of ships departed from pier
+    N_move_port = 0  # number of ships moved to port
 
-    A = {}
-    A_real_dpart = {}
+    A = {}  # all the ships arrived ship_number : (time, ship_type)
+    A_real_dpart = {}  # real ship depart time from port
 
-    move_to_pier = {}
+    move_to_pier = {}  # time of ship arrive to pier
 
-    depart = {}
-    depart_real = {}
+    depart = {}  # time of ship should depart pier
+    depart_real = {}  # real time of ship depart pier
 
-    move_to_port = {}
+    move_to_port = {}  # time of ship arrive to port to leave
 
     #           Na,pier of destiny,Side,
-    SS_move = [(None, None, TrailerSide.port) for _ in range(trailer_amout)]
-    SS_move_to_pier_queue = []
+    SS_move = [
+        (None, None, TrailerSide.port) for _ in range(trailer_amout)
+    ]  # status of trailers trailer_number : (ship being moved, pier of destiny, side of trailer)
+    SS_move_to_pier_queue = []  # queue of ships waiting to go to pier
 
-    SS_depart = [None for _ in range(pier_amount)]
+    SS_depart = [None for _ in range(pier_amount)]  # status of piers
 
-    SS_move_to_port_queue = []
+    SS_move_to_port_queue = []  # queue of ships waiting to go to port
 
-    time_move_to_pier = [INF for _ in range(trailer_amout)]
-    time_depart_pier = [INF for _ in range(pier_amount)]
-    time_move_to_port = [INF for _ in range(trailer_amout)]
+    time_move_to_pier = [
+        INF for _ in range(trailer_amout)
+    ]  # list of times of trailers to arrive to his pier destination
+    time_depart_pier = [
+        INF for _ in range(pier_amount)
+    ]  # list of times of piers to complete the load
+    time_move_to_port = [
+        INF for _ in range(trailer_amout)
+    ]  # list of times of trailers to arrive to his port destination
 
     time_arrive = 0
-    ship_arrive = None
 
     while (
         min(
