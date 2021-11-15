@@ -1,10 +1,10 @@
 from port import generate_arrive
-from functools import reduce
 from trailer import (
-    get_move_to_port_time,
-    get_move_to_pier_time,
+    call_trailer_to_go_to_pier,
     get_swap_time,
     TrailerSide,
+    move_to_pier,
+    move_to_port,
 )
 from ship import get_load_time
 from macros import INF
@@ -17,7 +17,26 @@ from utils import (
 )
 
 
-def simulate(total_time, pier_amount, trailer_amout):
+class Simulation:
+    def __init__(self, pier_amount, trailer_amount):
+        self.pier_amount = pier_amount
+        self.trailer_amount = trailer_amount
+
+        self.SS_move = [
+            (None, None, TrailerSide.port) for _ in range(trailer_amount)
+        ]  # status of trailers trailer_number : (ship being moved, pier of destiny, side of trailer)
+
+        self.SS_depart = [None for _ in range(trailer_amount)]  # status of piers
+        self.time_move_to_pier = [
+            INF for _ in range(trailer_amount)
+        ]  # list of times of trailers to arrive to his pier destination
+        self.time_depart_pier = [
+            INF for _ in range(pier_amount)
+        ]  # list of times of piers to complete the load
+        self.time_move_to_port = [
+            INF for _ in range(trailer_amount)
+        ]  # list of times of trailers to arrive to his port destination
+
     time = 0  # time
     Na = 0  # number of ships arrived
     N_move_pier = 0  # number of ships moved to pier
@@ -25,7 +44,7 @@ def simulate(total_time, pier_amount, trailer_amout):
     N_move_port = 0  # number of ships moved to port
 
     A = {}  # all the ships arrived ship_number : (time, ship_type)
-    A_real_dpart = {}  # real ship depart time from port
+    A_real_depart = {}  # real ship depart time from port
 
     move_to_pier = {}  # time of ship arrive to pier
 
@@ -34,275 +53,277 @@ def simulate(total_time, pier_amount, trailer_amout):
 
     move_to_port = {}  # time of ship arrive to port to leave
 
-    #           Na,pier of destiny,Side,
-    SS_move = [
-        (None, None, TrailerSide.port) for _ in range(trailer_amout)
-    ]  # status of trailers trailer_number : (ship being moved, pier of destiny, side of trailer)
     SS_move_to_pier_queue = []  # queue of ships waiting to go to pier
-
-    SS_depart = [None for _ in range(pier_amount)]  # status of piers
 
     SS_move_to_port_queue = []  # queue of ships waiting to go to port
 
-    time_move_to_pier = [
-        INF for _ in range(trailer_amout)
-    ]  # list of times of trailers to arrive to his pier destination
-    time_depart_pier = [
-        INF for _ in range(pier_amount)
-    ]  # list of times of piers to complete the load
-    time_move_to_port = [
-        INF for _ in range(trailer_amout)
-    ]  # list of times of trailers to arrive to his port destination
+    def simulate(self, total_time, login=False):
 
-    time_arrive = 0
+        time_arrive = 0
 
-    while (
-        min(
-            time_arrive,
-            min_of_list(time_move_to_pier),
-            min_of_list(time_depart_pier),
-            min_of_list(time_move_to_port),
-        )
-        != INF
-    ):
-        # temp = input()
-        print()
-        print(f"SS_move: {SS_move}")
-        print(f"SS_depart: {SS_depart}")
-        print(f"pier_queue: {SS_move_to_pier_queue}")
-        print(f"port queue: {SS_move_to_port_queue}")
-        print(f"time: {time}")
-        print()
-
-        # Arrive event
-        if (
+        while (
             min(
                 time_arrive,
-                min_of_list(time_move_to_pier),
-                min_of_list(time_depart_pier),
-                min_of_list(time_move_to_port),
+                min_of_list(self.time_move_to_pier),
+                min_of_list(self.time_depart_pier),
+                min_of_list(self.time_move_to_port),
             )
-            == time_arrive
+            != INF
         ):
-            time = time_arrive
+            if login:
+                print()
+                print(f"SS_move: {self.SS_move}")
+                print(f"SS_depart: {self.SS_depart}")
+                print(f"pier_queue: {self.SS_move_to_pier_queue}")
+                print(f"port queue: {self.SS_move_to_port_queue}")
+                print(f"time: {self.time}")
+                print()
 
-            arrive = generate_arrive()
-            time_arrive_temp = arrive[0]
-            time_arrive = time + time_arrive_temp
-            ship_arrive_type = arrive[1]
-
-            if time == 0:  # First iteration
-                continue
-
-            Na += 1
-            ship = Na
-            A[ship] = (time, ship_arrive_type)
-
-            if time_arrive > total_time:
-                time_arrive = INF
-
-            print(f"Ship {ship} of type {ship_arrive_type} arrive to the port")
-
-            trailer_free = get_first_none_tuple(SS_move, TrailerSide.port)
-            trailer_free_other_side = get_first_none_tuple(SS_move, TrailerSide.pier)
-            pier_free = get_first_none(SS_depart)
-
-            # going to pier
+            # Arrive event
             if (
-                len(SS_move_to_pier_queue) == 0
-                and trailer_free is not None
-                and pier_free is not None
-            ):
-                A_real_dpart[ship] = time
-                SS_move[trailer_free] = (ship, pier_free, TrailerSide.pier)
-                SS_depart[pier_free] = ship
-                time_move_to_pier[trailer_free] = time + get_move_to_pier_time()
-
-                print(
-                    f"Ship {ship} of type {ship_arrive_type} going to pier {pier_free} by trailer {trailer_free}"
+                min(
+                    time_arrive,
+                    min_of_list(self.time_move_to_pier),
+                    min_of_list(self.time_depart_pier),
+                    min_of_list(self.time_move_to_port),
                 )
+                == time_arrive
+            ):
+                self.time = time_arrive
 
-            # calling trailer from pier to port
+                arrive = generate_arrive()
+                time_arrive_temp = arrive[0]
+                time_arrive = self.time + time_arrive_temp
+                ship_arrive_type = arrive[1]
+
+                if self.time == 0:  # First iteration
+                    continue
+
+                self.Na += 1
+                ship = self.Na
+                self.A[ship] = (self.time, ship_arrive_type)
+
+                # no more generation of arrives
+                if time_arrive > total_time:
+                    time_arrive = INF
+
+                if login:
+                    print(f"Ship {ship} of type {ship_arrive_type} arrive to the port")
+
+                trailer_free = get_first_none_tuple(self.SS_move, TrailerSide.port)
+                trailer_free_other_side = get_first_none_tuple(
+                    self.SS_move, TrailerSide.pier
+                )
+                pier_free = get_first_none(self.SS_depart)
+
+                # going to pier
+                if (
+                    len(self.SS_move_to_pier_queue) == 0
+                    and trailer_free is not None
+                    and pier_free is not None
+                ):
+                    move_to_pier(
+                        ship, ship_arrive_type, trailer_free, pier_free, self, login
+                    )
+
+                # calling trailer from pier to port
+                elif (
+                    len(self.SS_move_to_pier_queue) == 0
+                    and trailer_free_other_side is not None
+                    and pier_free
+                ):
+                    call_trailer_to_go_to_pier(
+                        ship,
+                        ship_arrive_type,
+                        trailer_free_other_side,
+                        pier_free,
+                        self,
+                        login,
+                    )
+                    self.SS_move_to_pier_queue.append(ship)
+
+                    if login:
+                        print(
+                            f"Ship {ship} of type {ship_arrive_type} going to queue to go to the pier"
+                        )
+
+                # goin to queue
+                else:
+                    self.SS_move_to_pier_queue.append(ship)
+
+                    if login:
+                        print(
+                            f"Ship {ship} of type {ship_arrive_type} going to queue to go to the pier"
+                        )
+
+            # Move to Pier
             elif (
-                len(SS_move_to_pier_queue) == 0
-                and trailer_free_other_side is not None
-                and pier_free
+                min(
+                    time_arrive,
+                    min_of_list(self.time_move_to_pier),
+                    min_of_list(self.time_depart_pier),
+                    min_of_list(self.time_move_to_port),
+                )
+                == min_of_list(self.time_move_to_pier)
             ):
-                SS_move[trailer_free_other_side] = (0, None, TrailerSide.port)
-                SS_depart[pier_free] = ship
-                time_move_to_port[trailer_free_other_side] = time + get_swap_time()
-                SS_move_to_pier_queue.append(ship)
+                trailer = get_position_of_min(self.time_move_to_pier)
+                ship, pier, _ = self.SS_move[trailer]
+                self.time = self.time_move_to_pier[trailer]
+                self.time_move_to_pier[trailer] = INF
+                self.SS_move[trailer] = (None, None, TrailerSide.pier)
 
-                print(
-                    f"Ship {ship} of type {ship_arrive_type} call trailer {trailer_free_other_side} from port to go the pier {pier_free}"
-                )
+                # not was a swap
+                if pier is not None:
+                    ship_type = self.A[ship][1]
+                    self.N_move_pier += 1
+                    self.move_to_pier[ship] = self.time
 
-            # goin to queue
-            else:
-                SS_move_to_pier_queue.append(ship)
+                    self.time_depart_pier[pier] = self.time + get_load_time(ship_type)
 
-                print(
-                    f"Ship {ship} of type {ship_arrive_type} going to queue to go to the pier"
-                )
+                    if login:
+                        print(
+                            f"Ship {ship} of type {ship_type} arrive to the pier {pier} by trailer {trailer}"
+                        )
 
-        # Move to Pier
-        elif (
-            min(
-                time_arrive,
-                min_of_list(time_move_to_pier),
-                min_of_list(time_depart_pier),
-                min_of_list(time_move_to_port),
-            )
-            == min_of_list(time_move_to_pier)
-        ):
-            trailer = get_position_of_min(time_move_to_pier)
-            ship, pier, _ = SS_move[trailer]
-            time = time_move_to_pier[trailer]
-            time_move_to_pier[trailer] = INF
-            SS_move[trailer] = (None, None, TrailerSide.pier)
+                # is a swap
+                else:
+                    if login:
+                        print(f"Trailer {trailer} arrive to pier by swap")
 
-            # not was a swap
-            if pier is not None:
-                N_move_pier += 1
-                move_to_pier[ship] = time
+                pier_free = get_first_none(self.SS_depart)
 
-                time_depart_pier[pier] = time + get_load_time(A[ship][1])
-
-                print(
-                    f"Ship {ship} of type {A[ship][1]} arrive to the pier {pier} by trailer {trailer}"
-                )
-
-            # is a swap
-            else:
-                print(f"Trailer {trailer} arrive to pier by swap")
-
-            pier_free = get_first_none(SS_depart)
-
-            # ship ready to depart going to port
-            if len(SS_move_to_port_queue) > 0:
-                ship_leave, pier_leave = SS_move_to_port_queue.pop()
-                depart_real[ship_leave] = time
-                SS_move[trailer] = (ship_leave, 0, TrailerSide.port)
-                SS_depart[pier_leave] = None
-                time_move_to_port[trailer] = time + get_move_to_port_time()
-
-                print(
-                    f"Ship {ship_leave} of type {A[ship_leave][1]} going to the port by trailer {trailer}"
-                )
-
-            # ship in port and pier free bring a ship to pier
-            elif pier_free is not None and len(SS_move_to_pier_queue) > 0:
-                SS_move[trailer] = (0, None, TrailerSide.port)
-                SS_depart[pier_free] = SS_move_to_pier_queue[0]
-                time_move_to_port[trailer] = time + get_swap_time()
-
-                print(
-                    f"Ship {SS_move_to_pier_queue[0]} of type {A[SS_move_to_pier_queue[0]][1]} call trailer {trailer} from port to go the pier {pier_free}"
-                )
-
-        # Depart Pier
-        elif (
-            min(
-                time_arrive,
-                min_of_list(time_move_to_pier),
-                min_of_list(time_depart_pier),
-                min_of_list(time_move_to_port),
-            )
-            == min_of_list(time_depart_pier)
-        ):
-            pier = get_position_of_min(time_depart_pier)
-            ship = SS_depart[pier]
-            time = time_depart_pier[pier]
-            time_depart_pier[pier] = INF
-
-            N_depart_pier += 1
-            depart[ship] = time
-
-            print(
-                f"Ship {ship} of type {A[ship][1]} is ready to depart from pier {pier}"
-            )
-
-            trailer_free = get_first_none_tuple(SS_move, TrailerSide.pier)
-
-            # ship ready to depart, going to port
-            if trailer_free is not None and len(SS_move_to_port_queue) == 0:
-                depart_real[ship] = time
-                SS_move[trailer_free] = (ship, 0, TrailerSide.port)
-                SS_depart[pier] = None
-                time_move_to_port[trailer_free] = time + get_move_to_port_time()
-
-                print(
-                    f"Ship {ship} of type {A[ship][1]} going to the port by trailer {trailer_free}"
-                )
-
-            # going to queue
-            else:
-                SS_move_to_port_queue.append((ship, pier))
-
-                print(f"Ship {ship} of type {A[ship][1]} going to queue to go to port")
-
-        # Move to Port
-        elif (
-            min(
-                time_arrive,
-                min_of_list(time_move_to_pier),
-                min_of_list(time_depart_pier),
-                min_of_list(time_move_to_port),
-            )
-            == min_of_list(time_move_to_port)
-        ):
-            trailer = get_position_of_min(time_move_to_port)
-            ship, pier, _ = SS_move[trailer]
-            time = time_move_to_port[trailer]
-            time_move_to_port[trailer] = INF
-            SS_move[trailer] = (None, 0, TrailerSide.port)
-
-            # is not a swap
-            if pier is not None:
-                N_move_port += 1
-                move_to_port[ship] = time
-
-                print(
-                    f"Ship {ship} of type {A[ship][1]} arrive to the port by trailer {trailer}"
-                )
-
-            # is a swap
-            else:
-                print(f"Trailer {trailer} arrive to port by swap")
-
-            pier_free = get_first_none(SS_depart)
-            # ships ready to go to pier
-            if len(SS_move_to_pier_queue) > 0:
-                # with reservation
-                if SS_move_to_pier_queue[0] in SS_depart:
-                    ship_bring = SS_move_to_pier_queue.pop(0)
-                    pier_reserved = SS_depart.index(ship_bring)
-                    A_real_dpart[ship_bring] = time
-                    SS_move[trailer] = (ship_bring, pier_reserved, TrailerSide.pier)
-                    time_move_to_pier[trailer] = time + get_move_to_pier_time()
-
-                    print(
-                        f"Ship {ship_bring} of type {A[ship_bring][1]} going to pier {pier_reserved} by trailer {trailer}"
+                # ship ready to depart going to port
+                if len(self.SS_move_to_port_queue) > 0:
+                    ship_leave, pier_leave = self.SS_move_to_port_queue.pop()
+                    move_to_port(
+                        ship_leave,
+                        self.A[ship_leave][1],
+                        trailer,
+                        pier_leave,
+                        self,
+                        login,
                     )
 
-                    continue
-
-                # without reservation but pier free
-                elif pier_free is not None:
-                    ship_bring = SS_move_to_pier_queue.pop(0)
-                    A_real_dpart[ship_bring] = time
-                    SS_depart[pier_free] = ship_bring
-                    SS_move[trailer] = (ship_bring, pier_free, TrailerSide.pier)
-                    time_move_to_pier[trailer] = time + get_move_to_pier_time()
-
-                    print(
-                        f"Ship {ship_bring} of type {A[ship_bring][1]} going to pier {pier_free} by trailer {trailer}"
+                # ship in port and pier free bring a ship to pier
+                elif pier_free is not None and len(self.SS_move_to_pier_queue) > 0:
+                    ship_to_come = self.SS_move_to_pier_queue[0]
+                    call_trailer_to_go_to_pier(
+                        ship_to_come,
+                        self.A[ship_to_come][1],
+                        trailer,
+                        pier_free,
+                        self,
+                        login,
                     )
-                    continue
 
-            # going to pier to help ships (this is my asumption)
-            if not is_full_none(SS_depart):
-                SS_move[trailer] = (0, None, TrailerSide.pier)
-                time_move_to_pier[trailer] = time + get_swap_time()
+            # Depart Pier
+            elif (
+                min(
+                    time_arrive,
+                    min_of_list(self.time_move_to_pier),
+                    min_of_list(self.time_depart_pier),
+                    min_of_list(self.time_move_to_port),
+                )
+                == min_of_list(self.time_depart_pier)
+            ):
+                pier = get_position_of_min(self.time_depart_pier)
+                ship = self.SS_depart[pier]
+                ship_type = self.A[ship][1]
+                self.time = self.time_depart_pier[pier]
+                self.time_depart_pier[pier] = INF
 
-                print(f"Trailer {trailer} swap to pier for help rest of ships in pier")
+                self.N_depart_pier += 1
+                self.depart[ship] = self.time
+
+                if login:
+                    print(
+                        f"Ship {ship} of type {ship_type} is ready to depart from pier {pier}"
+                    )
+
+                trailer_free = get_first_none_tuple(self.SS_move, TrailerSide.pier)
+
+                # ship ready to depart, going to port
+                if trailer_free is not None and len(self.SS_move_to_port_queue) == 0:
+                    move_to_port(ship, ship_type, trailer_free, pier, self, login)
+
+                # going to queue
+                else:
+                    self.SS_move_to_port_queue.append((ship, pier))
+
+                    if login:
+                        print(
+                            f"Ship {ship} of type {ship_type} going to queue to go to port"
+                        )
+
+            # Move to Port
+            elif (
+                min(
+                    time_arrive,
+                    min_of_list(self.time_move_to_pier),
+                    min_of_list(self.time_depart_pier),
+                    min_of_list(self.time_move_to_port),
+                )
+                == min_of_list(self.time_move_to_port)
+            ):
+                trailer = get_position_of_min(self.time_move_to_port)
+                ship, pier, _ = self.SS_move[trailer]
+                self.time = self.time_move_to_port[trailer]
+                self.time_move_to_port[trailer] = INF
+                self.SS_move[trailer] = (None, 0, TrailerSide.port)
+
+                # is not a swap
+                if pier is not None:
+                    ship_type = self.A[ship][1]
+                    self.N_move_port += 1
+                    self.move_to_port[ship] = self.time
+
+                    if login:
+                        print(
+                            f"Ship {ship} of type {ship_type} arrive to the port by trailer {trailer}"
+                        )
+
+                # is a swap
+                else:
+                    if login:
+                        print(f"Trailer {trailer} arrive to port by swap")
+
+                pier_free = get_first_none(self.SS_depart)
+                # ships ready to go to pier
+                if len(self.SS_move_to_pier_queue) > 0:
+                    # with reservation
+                    if self.SS_move_to_pier_queue[0] in self.SS_depart:
+                        ship_bring = self.SS_move_to_pier_queue.pop(0)
+                        ship_bring_type = self.A[ship_bring][1]
+                        pier_reserved = self.SS_depart.index(ship_bring)
+
+                        move_to_pier(
+                            ship_bring,
+                            ship_bring_type,
+                            trailer,
+                            pier_reserved,
+                            self,
+                            login,
+                        )
+
+                        continue
+
+                    # without reservation but pier free
+                    elif pier_free is not None:
+                        ship_bring = self.SS_move_to_pier_queue.pop(0)
+                        ship_bring_type = self.A[ship_bring][1]
+
+                        move_to_pier(
+                            ship_bring, ship_bring, trailer, pier_free, self, login
+                        )
+
+                        continue
+
+                # going to pier to help ships (this is my asumption)
+                if not is_full_none(self.SS_depart):
+                    self.SS_move[trailer] = (0, None, TrailerSide.pier)
+                    self.time_move_to_pier[trailer] = self.time + get_swap_time()
+
+                    if login:
+                        print(
+                            f"Trailer {trailer} swap to pier for help rest of ships in pier"
+                        )
