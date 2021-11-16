@@ -136,7 +136,6 @@ class Simulation:
                         ship,
                         ship_arrive_type,
                         trailer_free_other_side,
-                        pier_free,
                         self,
                         login,
                     )
@@ -211,7 +210,6 @@ class Simulation:
                         ship_to_come,
                         self.A[ship_to_come][1],
                         trailer,
-                        pier_free,
                         self,
                         login,
                     )
@@ -289,37 +287,16 @@ class Simulation:
 
                 pier_free = get_first_none(self.SS_depart)
                 # ships ready to go to pier
-                if len(self.SS_move_to_pier_queue) > 0:
-                    # with reservation
-                    if self.SS_move_to_pier_queue[0] in self.SS_depart:
-                        ship_bring = self.SS_move_to_pier_queue.pop(0)
-                        ship_bring_type = self.A[ship_bring][1]
-                        pier_reserved = self.SS_depart.index(ship_bring)
+                if len(self.SS_move_to_pier_queue) > 0 and pier_free is not None:
+                    ship_bring = self.SS_move_to_pier_queue.pop(0)
+                    ship_bring_type = self.A[ship_bring][1]
 
-                        move_to_pier(
-                            ship_bring,
-                            ship_bring_type,
-                            trailer,
-                            pier_reserved,
-                            self,
-                            login,
-                        )
+                    move_to_pier(
+                        ship_bring, ship_bring, trailer, pier_free, self, login
+                    )
 
-                        continue
-
-                    # without reservation but pier free
-                    elif pier_free is not None:
-                        ship_bring = self.SS_move_to_pier_queue.pop(0)
-                        ship_bring_type = self.A[ship_bring][1]
-
-                        move_to_pier(
-                            ship_bring, ship_bring, trailer, pier_free, self, login
-                        )
-
-                        continue
-
-                # going to pier to help ships (this is my asumption)
-                if not is_full_none(self.SS_depart):
+                # going to pier to help ships
+                elif not is_full_none(self.SS_depart):
                     self.SS_move[trailer] = (0, None, TrailerSide.pier)
                     self.time_move_to_pier[trailer] = self.time + get_swap_time()
 

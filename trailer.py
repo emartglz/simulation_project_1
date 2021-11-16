@@ -39,14 +39,13 @@ def move_to_pier(
         )
 
 
-def call_trailer_to_go_to_pier(ship, ship_type, trailer, pier, s, login=False):
+def call_trailer_to_go_to_pier(ship, ship_type, trailer, s, login=False):
     s.SS_move[trailer] = (0, None, TrailerSide.port)
-    s.SS_depart[pier] = ship
     s.time_move_to_port[trailer] = s.time + get_swap_time()
 
     if login:
         print(
-            f"Ship {ship} of type {ship_type} call trailer {trailer} from port to go the pier {pier}"
+            f"Ship {ship} of type {ship_type} call trailer {trailer} from port to go pier"
         )
 
 
