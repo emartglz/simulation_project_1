@@ -292,7 +292,7 @@ class Simulation:
                     ship_bring_type = self.A[ship_bring][1]
 
                     move_to_pier(
-                        ship_bring, ship_bring, trailer, pier_free, self, login
+                        ship_bring, ship_bring_type, trailer, pier_free, self, login
                     )
 
                 # going to pier to help ships
