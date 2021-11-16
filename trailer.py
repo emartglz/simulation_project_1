@@ -1,3 +1,4 @@
+from macros import TIME_SWAP, TIME_TO_PIER, TIME_TO_PORT
 import rng
 from enum import Enum
 
@@ -8,15 +9,15 @@ class TrailerSide(Enum):
 
 
 def get_move_to_pier_time():
-    return rng.exponential(1 / 2)
+    return rng.exponential(1 / TIME_TO_PIER)
 
 
 def get_move_to_port_time():
-    return rng.exponential(1)
+    return rng.exponential(1 / TIME_TO_PORT)
 
 
 def get_swap_time():
-    return rng.exponential(4)
+    return rng.exponential(1 / TIME_SWAP)
 
 
 def move_to_pier(

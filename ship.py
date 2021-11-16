@@ -1,4 +1,12 @@
 from enum import Enum
+from macros import (
+    LARGE_SHIP_LOAD_TIME_MU,
+    LARGE_SHIP_LOAD_TIME_SIGMA2,
+    MEDIUM_SHIP_LOAD_TIME_MU,
+    MEDIUM_SHIP_LOAD_TIME_SIGMA2,
+    SMALL_SHIP_LOAD_TIME_MU,
+    SMALL_SHIP_LOAD_TIME_SIGMA2,
+)
 import rng
 
 
@@ -9,9 +17,9 @@ class ShipTypes(Enum):
 
 
 times_for_load = {
-    ShipTypes.small: (9, 1),
-    ShipTypes.medium: (12, 2),
-    ShipTypes.large: (18, 3),
+    ShipTypes.small: (SMALL_SHIP_LOAD_TIME_MU, SMALL_SHIP_LOAD_TIME_SIGMA2),
+    ShipTypes.medium: (MEDIUM_SHIP_LOAD_TIME_MU, MEDIUM_SHIP_LOAD_TIME_SIGMA2),
+    ShipTypes.large: (LARGE_SHIP_LOAD_TIME_MU, LARGE_SHIP_LOAD_TIME_SIGMA2),
 }
 
 

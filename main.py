@@ -2,7 +2,7 @@ from simulation import Simulation
 
 
 def main():
-    total_time = 100
+    total_time = 30 * 24 * 60
     pier_amount = 3
     trailer_amout = 2
 
