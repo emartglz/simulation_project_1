@@ -46,8 +46,36 @@
 
 \section{Principales Ideas seguidas para la solución del problema:}
 
+	Para la solución se utilizó un modelo basado en eventos discretos, en donde cada vez que ocurre un evento se genera el próximo. Se atiende el evento que más próximo esta por suceder. Es como si todos los eventos se ordenaran en una línea de tiempo y se fuese recorriendo y tratando cada evento según su orden.
+
+	En el caso de este problema existen distintos tipos de eventos, y cada uno de estos además de generar el próximo evento de su mismo tipo, puede generar otro evento de otro tipo para añadirlo a otra fase de la simulación.
+
+	A pesar de que el problema solo plantea la existencia de 1 remolcador y 3 muelles, se implementó una solución genérica en la cantidad de ambos datos.
+
+
 \section{Modelo de Simulación de Eventos Discretos desarrollado para resolver el
 problema:}
+
+	Existen distintos tipos de eventos:
+	
+	\begin{enumerate}
+		\item Llega un barco al puerto.
+		\item Llega un remolcador al muelle
+		\item Un barco termina de cargar en el muelle
+		\item Llega un remolcador al puerto
+	\end{enumerate}
+
+	Para cada uno de estos hay asociadas una serie de operaciones que se ejecutan cuando es alcanzado en la línea temporal. Cuando el evento más próximo posee tiempo infinito, entonces se detiene la simulación.
+	
+	Cuando llega un barco al puerto, se comprueba que el nuevo tiempo de arribo sea menor que el tiempo total que se desea simular, en caso de que sea mayor, se asigna infinito al tiempo de arrivo. Luego se comprueba la existencia de más barcos en el puerto, en caso de que ya exista una cola, el nuevo barco pasa a formar parte de esta, en otro caso, comprueba que exista al menos un muelle vacío. En caso de que exista alguno, comprueba de que exista algún remolcador libre en el puerto, si existe, pues sale rumbo a ese muelle. En caso de que no existan remolcadores libres en el puerto, busca por remolcadores libres en el muelle, si estos existen, hace un llamado a uno de ellos.
+
+	Cuando llega un remolcador al muelle, se genera el tiempo en que se completará la carga del barco. Si existe algún barco listo para ir la puerto, le asistirá. En caso de que no hayan barcos listos para salir al puerto pero existan al menos un muelle vacío y un barco en el puerto, el remolcador saldrá rumbo al puerto a auxiliarlo.
+
+	Cuando un barco completa la carga, comprueba si existen remolcadores en el muelle, en caso de que existan, el remolcador lo asistirá para llegar al puerto. En caso de que no existan, el barco esperará en la cola listo para salir rumbo al puerto.
+
+	Cuanto llega un remolcador al puerto, este comprueba si existe algún muelle vacío y si hay barcos en el puerto, en caso afirmativo, lleva un barco hasta el muelle, en caso de que no y existan barcos en el muelle, el remolcadaor sale rumbo al muelle.
+
+	Resaltar que se ha implementado la solución para múltiples remolcadores y puertos partiendo de las mismas acciones planteadas en el problema, por lo que la solución puede probocar diversos casos que podrían resultar inadecuados. Podríamos poner el siguiente ejemplo: asumamos que se tienen 2 remolcadores, A y B respectivamente, que se encuentran trasladando a dos barcos al muelle. Justo en su travesía, arriva un barco nuevo al puerto. Al llegar el remolcador A al muelle, ve que hay un barco esperando en el puerto, y sale a su ayuda, y al llegar B al muelle, sucede igual. 
 
 \section{Consideraciones obtenidas a partir de la ejecución de las simulaciones del
 problema:}
