@@ -1,4 +1,4 @@
-from numpy.random import default_rng
+import rng
 from enum import Enum
 
 
@@ -8,17 +8,14 @@ class TrailerSide(Enum):
 
 
 def get_move_to_pier_time():
-    rng = default_rng()
     return rng.exponential(1 / 2)
 
 
 def get_move_to_port_time():
-    rng = default_rng()
     return rng.exponential(1)
 
 
 def get_swap_time():
-    rng = default_rng()
     return rng.exponential(4)
 
 

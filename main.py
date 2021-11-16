@@ -8,6 +8,7 @@ def main():
 
     s = Simulation(pier_amount, trailer_amout)
     s.simulate(total_time)
+    print(s.Na, s.N_move_pier, s.N_depart_pier, s.N_move_port)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 from ship import ShipTypes
-from numpy.random import default_rng
+import rng
 from random import choices
 
 arrival_probability = {
@@ -10,7 +10,6 @@ arrival_probability = {
 
 
 def generate_arrive():
-    rng = default_rng()
 
     arrive_time = rng.exponential(1 / 8)
 

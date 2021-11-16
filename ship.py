@@ -1,6 +1,5 @@
 from enum import Enum
-from numpy.lib.function_base import median
-from numpy.random import default_rng
+import rng
 
 
 class ShipTypes(Enum):
@@ -17,5 +16,4 @@ times_for_load = {
 
 
 def get_load_time(type):
-    rng = default_rng()
     return rng.normal(times_for_load[type][0], times_for_load[type][1])
