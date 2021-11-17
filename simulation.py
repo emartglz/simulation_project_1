@@ -26,7 +26,7 @@ class Simulation:
             (None, None, TrailerSide.port) for _ in range(trailer_amount)
         ]  # status of trailers trailer_number : (ship being moved, pier of destiny, side of trailer)
 
-        self.SS_depart = [None for _ in range(trailer_amount)]  # status of piers
+        self.SS_depart = [None for _ in range(pier_amount)]  # status of piers
         self.time_move_to_pier = [
             INF for _ in range(trailer_amount)
         ]  # list of times of trailers to arrive to his pier destination
