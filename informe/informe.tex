@@ -50,12 +50,12 @@
 
 \section{Principales Ideas seguidas para la solución del problema:}
 
-	Para la solución se utilizó un modelo basado en eventos discretos, en donde cada vez que ocurre un evento se genera el próximo. Se atiende el evento que más próximo esta por suceder. Es como si todos los eventos se ordenaran en una línea de tiempo y se fuese recorriendo y tratando cada evento según su orden.
+	Para la solución se utilizó un modelo basado en eventos discretos, en donde cada vez que ocurre un evento se genera el próximo. Se atiende el evento que esté más próximo a suceder. Es como si todos los eventos se ordenaran en una línea de tiempo y se fuese recorriendo y tratando cada evento según su orden.
 
-	En el caso de este problema existen 4 tipos de eventos, y cada uno de estos además de generar el próximo evento de su mismo tipo, puede generar otro evento de otro tipo para añadirlo a otra fase de la simulación. Estos eventos son:
+	En el caso de este problema existen 4 tipos de eventos, y cada uno de estos además de poder generar el próximo evento de su mismo tipo, puede generar otro evento de otro tipo para añadirlo a otra fase de la simulación. Estos eventos son:
 	
 	\begin{enumerate}
-		\item Llega un barco al puerto.
+		\item Llega un barco al puerto
 		\item Llega un remolcador al muelle
 		\item Un barco termina de cargar en el muelle
 		\item Llega un remolcador al puerto
@@ -63,19 +63,19 @@
 
 	Para cada uno de estos hay asociadas una serie de operaciones que se ejecutan cuando es alcanzado en la línea temporal. Cuando el evento más próximo posee tiempo infinito, entonces se detiene la simulación, ya que esto indica que no hay eventos que analizar. 
 	
-	Cuando llega un barco al puerto, se genera un nuevo evento de arribo en la línea temporal, se comprueba que este nuevo arribo sea menor que el tiempo total que se desea simular, en caso de que sea mayor, se le asigna infinito, para así culminar la generación de eventos de arribos. Luego se comprueba la existencia de más barcos en el puerto, en caso de que ya exista una cola, el nuevo barco pasa a formar parte de esta, en otro caso, comprueba que exista al menos un muelle vacío. En caso de que exista alguno, comprueba de que exista algún remolcador libre en el puerto, si existe, pues sale rumbo a ese muelle. En caso de que no existan remolcadores libres en el puerto, busca por remolcadores libres en el muelle, si estos existen, hace un llamado a uno de ellos.
+	Cuando llega un barco al puerto, se genera un nuevo evento de arribo en la línea temporal, se comprueba que este nuevo arribo sea menor que el tiempo total que se desea simular, en caso de que sea mayor, se le asigna infinito, para así culminar la generación de eventos de arribos. Luego se comprueba la existencia de más barcos en el puerto, en caso de que ya exista una cola, el nuevo barco pasa a formar parte de esta, en otro caso, comprueba que exista al menos un muelle vacío. En caso de que exista alguno, comprueba de que exista algún remolcador libre en el puerto, si existe, pues sale rumbo a ese muelle. En caso de que no existan remolcadores libres en el puerto, busca por remolcadores libres en el muelle, si estos existen, hace un llamado a uno de ellos y el barco pasa a formar parte de la cola.
 
 	Cuando llega un remolcador al muelle, y este trae un barco, se genera el tiempo en que se completará la carga de este. Si existe algún barco listo para ir la puerto, le asistirá. En caso de que no existan barcos listos para salir al puerto pero se encuentre al menos un muelle vacío y un barco en el puerto, el remolcador saldrá rumbo al puerto para auxiliarlo.
 
-	Cuando un barco completa la carga, comprueba si existen remolcadores en el muelle, en caso de que exista alguno, este lo asistirá para llegar al puerto. En caso de que no existan, el barco esperará en la cola listo para salir rumbo al puerto.
+	Cuando un barco completa la carga, comprueba si existe alguna cola para partir al puerto, en caso de que existe, el barco comienza a formar parte de esta. En otro caso, comprueba si existen remolcadores en el muelle, en caso de que exista alguno, este lo asistirá para llegar al puerto. En caso de que no existan, el barco esperará en la cola listo para salir rumbo al puerto.
 
-	Cuanto llega un remolcador al puerto, este comprueba si existe algún muelle vacío y si hay barcos en el puerto, en caso afirmativo, lleva un barco hasta el muelle, en caso de que no y existan barcos en el muelle, el remolcadaor sale rumbo al muelle.
+	Cuando llega un remolcador al puerto, este comprueba si existe algún muelle vacío y si hay barcos en el puerto, en caso afirmativo, lleva un barco hasta el muelle, en caso de que no y existan barcos en el muelle, el remolcadaor sale rumbo al muelle.
 
 	A pesar de que el problema solo plantea la existencia de 1 remolcador y 3 muelles, se implementó una solución genérica en la cantidad de ambos datos.
 
 	Resaltar que se ha implementado la solución para múltiples remolcadores y puertos partiendo de las mismas acciones planteadas en el problema, por lo que la solución puede probocar diversos casos que podrían resultar inadecuados. Podríamos poner el siguiente ejemplo: asumamos que se tienen 2 remolcadores, A y B respectivamente, que se encuentran trasladando a dos barcos al muelle. Justo en su travesía, arriva un barco nuevo al puerto. Al llegar el remolcador A al muelle, ve que hay un barco esperando en el puerto, y sale a su ayuda, y al llegar B al muelle, sucede igual.
 
-	Para la generación de todas las variables aleatorias, se partió de la variable uniforme $U(0, 1)$ que posee python en uno de sus módulos.
+	Para la generación de todas las variables aleatorias, se partió de la variable uniforme $U(0, 1)$ que posee python $numpy.random.default\_rng().uniform()$.
 
 
 \section{Modelo de Simulación de Eventos Discretos desarrollado para resolver el problema:}
@@ -101,17 +101,17 @@
 			\begin{itemize}
 				\item $SS\_move\_to\_pier\_queue$: Lista de barcos en la cola para ir al muelle
 				\item $SS\_move\_to\_port\_queue$: Lista de barcos en la cola para ir al puerto
-				\item $SS\_move$: Lista de estados de los distintos remolcadores. $SS\_move_i = (S_i, P_i, B_i)$, donde $S_i$ es el barco que está transportando el trailer $i$, en caso de que no esté transportando a ningún barco y solo se encuentre cambiando de lado tendrá el valor $0$, en caso de que esté libre, tendrá valor $None$, $P_i$ es el muelle de destino, en caso de que no esté rumbo a un muelle, este tendrá valor $None$, $B_i$ es el lado donde se encuentra el remolcador
-				\item $SS\_depart$: Lista de estados de los distintos muelles. $SS\_depart_i$ = $S_i$, donde $S_i$ es el barco que se encuentra en el muelle $i$
+				\item $SS\_move$: Lista de estados de los distintos remolcadores. $SS\_move_i = (S_i, P_i, B_i)$, donde $S_i$ es el barco que está transportando el remolcador $i$, en caso de que no esté transportando ningún barco y solo se encuentre cambiando de lado tendrá valor $0$, en caso de que esté libre, tendrá valor $None$, $P_i$ es el muelle de destino, en caso de que no esté rumbo a un muelle, este tendrá valor $0$, y en caso de que solo esté cambiando de lado, tendrá valor $None$, $B_i$ es el lado donde se encuentra el remolcador
+				\item $SS\_depart$: Lista de estados de los distintos muelles. $SS\_depart_i$ = $S_i$, donde $S_i$ es el barco que se encuentra en el muelle $i$. Si no hay ningún barco en el muelle $i$, $S_i = None$
 			\end{itemize}
 		\item \textbf{Variables para almacenar los tiempos en los que sucedió cada evento en cada barco:}
 			\begin{itemize}
 				\item $A$: Tiempo de arribo y tipo de cada barco
     			\item $A\_real\_depart$: Tiempo en que parte cada barco al muelle
-    			\item $move\_to\_pier$: Tiempo en que arriba un barco al muelle
-    			\item $depart$: Tiempo en que un barco termina de cargar en el muelle
-    			\item $depart\_real$: Tiempo en que un barco parte desde el muelle
-    			\item $move\_to\_port$: Tiempo que llega un barco al puerto desde el muelle
+    			\item $move\_to\_pier$: Tiempo en que arriba cada barco al muelle
+    			\item $depart$: Tiempo en que cada barco termina de cargar en el muelle
+    			\item $depart\_real$: Tiempo en que cada barco parte desde el muelle
+    			\item $move\_to\_port$: Tiempo que llega cada barco al puerto desde el muelle
 			\end{itemize}
 	\end{enumerate}
 
@@ -119,7 +119,7 @@
 \section{Consideraciones obtenidas a partir de la ejecución de las simulaciones del
 problema:}
 
-	Al realizar la simulación múltiples veces, podemos apreciar como el comportamiento es similar, como se muestra en la gráfica \ref{fig:simulation_525600_3_1_10} en la que se realizaron 10 simulaciones, con 3 muelles, un remolcador y con un tiempo de 1 año. El tiempo total que pasa un barco desde que llega al puerto, hasta que se va de este es en promedio 320 minutos.
+	Al realizar la simulación múltiples veces, podemos ver como el comportamiento es similar, como se muestra en la gráfica \ref{fig:simulation_525600_3_1_10} en la que se realizaron 10 simulaciones, con 3 muelles, un remolcador y con un tiempo de 1 año. El tiempo total que pasa un barco desde que llega al puerto, hasta que se va de este, es en promedio 320 minutos.
 	
 	\begin{figure}[htb]
 		\begin{center}
@@ -128,7 +128,7 @@ problema:}
 		\caption{Promedios de tiempos en múltiples simulaciones con 3 muelles, 1 remolcador y 1 año \label{fig:simulation_525600_3_1_10}}
 	\end{figure}
 	
-	Si se aumentara la cantidad de remolcadores se podría disminuir el tiempo promedio de espera total de todos los barcos, esto se puede ver en la gráfica \ref{fig:simulation_525600_3_3_10} en donde solo modificó la cantidad de remolcadores del anterior ejemplo, aumentando en 2 su cantidad, provocando así que el tiempo total promedio fuese de 203 minutos.
+	Si se aumentara la cantidad de remolcadores se podría disminuir el tiempo promedio de espera total de todos los barcos, esto se puede ver en la gráfica \ref{fig:simulation_525600_3_3_10} en donde se modificó la cantidad de remolcadores del anterior ejemplo, aumentando en 2 su cantidad, provocando así que el tiempo total promedio fuese de 203 minutos.
 
 	\begin{figure}[htb]
 		\begin{center}
