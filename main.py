@@ -32,6 +32,8 @@ def multiples_simulations(total_time, pier_amount, trailer_amount, simulation_am
         )
         average_time_total.append(calculate_average(s.move_to_port, arrives))
 
+        print(f"time in total: {average_time_total[-1]}")
+
     plt.figure(figsize=(8, 8))
     plt.subplots_adjust(bottom=0.5)
     plt.plot(
@@ -86,7 +88,7 @@ def multiples_simulations(total_time, pier_amount, trailer_amount, simulation_am
 def main():
     total_time = 365 * 24 * 60
     pier_amount = 3
-    trailer_amout = 1
+    trailer_amout = 3
     simulation_amount = 10
 
     multiples_simulations(total_time, pier_amount, trailer_amout, simulation_amount)
