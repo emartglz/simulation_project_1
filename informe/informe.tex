@@ -115,10 +115,28 @@
 			\end{itemize}
 	\end{enumerate}
 
-	 
 
 \section{Consideraciones obtenidas a partir de la ejecución de las simulaciones del
 problema:}
+
+	Al realizar la simulación múltiples veces, podemos apreciar como el comportamiento es similar, como se muestra en la gráfica \ref{fig:simulation_525600_3_1_10} en la que se realizaron 10 simulaciones, con 3 muelles, un remolcador y con un tiempo de 1 año. El tiempo total que pasa un barco desde que llega al puerto, hasta que se va de este es en promedio 320 minutos.
+	
+	\begin{figure}[htb]
+		\begin{center}
+			\includegraphics[width=\columnwidth]{./figures/simulation_525600_3_1_10.pdf}
+		\end{center}
+		\caption{Promedios de tiempos en múltiples simulaciones con 3 muelles, 1 remolcador y 1 año \label{fig:simulation_525600_3_1_10}}
+	\end{figure}
+	
+	Si se aumentara la cantidad de remolcadores se podría disminuir el tiempo promedio de espera total de todos los barcos, esto se puede ver en la gráfica \ref{fig:simulation_525600_3_3_10} en donde solo modificó la cantidad de remolcadores del anterior ejemplo, aumentando en 2 su cantidad, provocando así que el tiempo total promedio fuese de 203 minutos.
+
+	\begin{figure}[htb]
+		\begin{center}
+			\includegraphics[width=\columnwidth]{./figures/simulation_525600_3_3_10.pdf}
+		\end{center}
+		\caption{Promedios de tiempos en múltiples simulaciones con 3 muelles, 3 remolcadores y 1 año \label{fig:simulation_525600_3_3_10}}
+	\end{figure}
+
 
 \section{Enlace al repositorio del proyecto en Github:}
 	\url{https://github.com/kikeXD/simulation_project_1}
