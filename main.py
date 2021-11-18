@@ -88,7 +88,7 @@ def multiples_simulations(total_time, pier_amount, trailer_amount, simulation_am
 def main():
     total_time = 365 * 24 * 60
     pier_amount = 3
-    trailer_amout = 3
+    trailer_amout = 1
     simulation_amount = 10
 
     multiples_simulations(total_time, pier_amount, trailer_amout, simulation_amount)

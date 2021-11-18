@@ -37,25 +37,25 @@ class Simulation:
             INF for _ in range(trailer_amount)
         ]  # list of times of trailers to arrive to his port destination
 
-    time = 0  # time
-    Na = 0  # number of ships arrived
-    N_move_pier = 0  # number of ships moved to pier
-    N_depart_pier = 0  # number of ships departed from pier
-    N_move_port = 0  # number of ships moved to port
+        self.time = 0  # time
+        self.Na = 0  # number of ships arrived
+        self.N_move_pier = 0  # number of ships moved to pier
+        self.N_depart_pier = 0  # number of ships departed from pier
+        self.N_move_port = 0  # number of ships moved to port
 
-    A = {}  # all the ships arrived ship_number : (time, ship_type)
-    A_real_depart = {}  # real ship depart time from port
+        self.A = {}  # all the ships arrived ship_number : (time, ship_type)
+        self.A_real_depart = {}  # real ship depart time from port
 
-    move_to_pier = {}  # time of ship arrive to pier
+        self.move_to_pier = {}  # time of ship arrive to pier
 
-    depart = {}  # time of ship should depart pier
-    depart_real = {}  # real time of ship depart pier
+        self.depart = {}  # time of ship should depart pier
+        self.depart_real = {}  # real time of ship depart pier
 
-    move_to_port = {}  # time of ship arrive to port to leave
+        self.move_to_port = {}  # time of ship arrive to port to leave
 
-    SS_move_to_pier_queue = []  # queue of ships waiting to go to pier
+        self.SS_move_to_pier_queue = []  # queue of ships waiting to go to pier
 
-    SS_move_to_port_queue = []  # queue of ships waiting to go to port
+        self.SS_move_to_port_queue = []  # queue of ships waiting to go to port
 
     def simulate(self, total_time, login=False):
 
