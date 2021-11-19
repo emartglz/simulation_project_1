@@ -67,13 +67,13 @@
 
 	Cuando llega un remolcador al muelle, y este trae un barco, se genera el tiempo en que se completará la carga de este. Si existe algún barco listo para ir la puerto, le asistirá. En caso de que no existan barcos listos para salir al puerto pero se encuentre al menos un muelle vacío y un barco en el puerto, el remolcador saldrá rumbo al puerto para auxiliarlo.
 
-	Cuando un barco completa la carga, comprueba si existe alguna cola para partir al puerto, en caso de que existe, el barco comienza a formar parte de esta. En otro caso, comprueba si existen remolcadores en el muelle, en caso de que exista alguno, este lo asistirá para llegar al puerto. En caso de que no existan, el barco esperará en la cola listo para salir rumbo al puerto.
+	Cuando un barco completa la carga, comprueba si existe alguna cola para partir al puerto, en caso de que exista, el barco comienza a formar parte de esta. En otro caso, comprueba si existen remolcadores en el muelle, en caso de que exista alguno, este lo asistirá para llegar al puerto. En caso de que no existan, el barco esperará en la cola listo para salir rumbo al puerto.
 
 	Cuando llega un remolcador al puerto, este comprueba si existe algún muelle vacío y si hay barcos en el puerto, en caso afirmativo, lleva un barco hasta el muelle, en caso de que no y existan barcos en el muelle, el remolcadaor sale rumbo al muelle.
 
 	A pesar de que el problema solo plantea la existencia de 1 remolcador y 3 muelles, se implementó una solución genérica en la cantidad de ambos datos.
 
-	Resaltar que se ha implementado la solución para múltiples remolcadores y puertos partiendo de las mismas acciones planteadas en el problema, por lo que la solución puede probocar diversos casos que podrían resultar inadecuados. Podríamos poner el siguiente ejemplo: asumamos que se tienen 2 remolcadores, A y B respectivamente, que se encuentran trasladando a dos barcos al muelle. Justo en su travesía, arriva un barco nuevo al puerto. Al llegar el remolcador A al muelle, ve que hay un barco esperando en el puerto, y sale a su ayuda, y al llegar B al muelle, sucede igual.
+	Resaltar que se ha implementado la solución para múltiples remolcadores y muelles partiendo de las mismas acciones planteadas en el problema, por lo que la solución puede probocar diversos casos que podrían resultar inadecuados. Podríamos poner el siguiente ejemplo: asumamos que se tienen 2 remolcadores, A y B respectivamente, que se encuentran trasladando a dos barcos al muelle. Justo en su travesía, arriva un barco nuevo al puerto. Al llegar el remolcador A al muelle, ve que hay un barco esperando en el puerto, y sale a su ayuda, y al llegar B al muelle, sucede igual.
 
 	Para la generación de todas las variables aleatorias, se partió de la variable uniforme $U(0, 1)$ que posee python $numpy.random.default\_rng().uniform()$.
 
@@ -111,7 +111,7 @@
     			\item $move\_to\_pier$: Tiempo en que arriba cada barco al muelle
     			\item $depart$: Tiempo en que cada barco termina de cargar en el muelle
     			\item $depart\_real$: Tiempo en que cada barco parte desde el muelle
-    			\item $move\_to\_port$: Tiempo que llega cada barco al puerto desde el muelle
+    			\item $move\_to\_port$: Tiempo en que llega cada barco al puerto desde el muelle
 			\end{itemize}
 	\end{enumerate}
 
@@ -119,7 +119,7 @@
 \section{Consideraciones obtenidas a partir de la ejecución de las simulaciones del
 problema:}
 
-	Al realizar la simulación múltiples veces, podemos ver como el comportamiento es similar, como se muestra en la gráfica \ref{fig:simulation_525600_3_1_10} en la que se realizaron 10 simulaciones, con 3 muelles, un remolcador y con un tiempo de 1 año. El tiempo total que pasa un barco desde que llega al puerto, hasta que se va de este, es en promedio 320 minutos.
+	Al realizar la simulación múltiples veces, podemos ver que el comportamiento es similar entre todas las simulaciones, como se muestra en la gráfica \ref{fig:simulation_525600_3_1_10} en la que se realizaron 10 simulaciones, con 3 muelles, un remolcador y con un tiempo de 1 año. El tiempo total que pasa un barco desde que llega al puerto, hasta que se va de este, es en promedio 320 minutos.
 	
 	\begin{figure}[htb]
 		\begin{center}
